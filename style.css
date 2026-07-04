@@ -23,7 +23,7 @@
 
   /* Primary — Coral */
   --accent:      #e5897a;
-  --accent2:     #262909;
+  --accent2:     #f19e8e;
   --accent-dim:  #c96b5c;
   --on-accent:   #121316;
   --accent-glow: rgba(229,137,122,0.15);
@@ -2053,10 +2053,10 @@ kbd {
   gap: 7px;
   height: 40px;
   padding: 0 16px 0 12px;
-  border: red;
+  border: none;
   border-radius: var(--radius-full);
   background: linear-gradient(135deg, var(--accent2), var(--accent-dim));
-  color: var(--text2);
+  color: var(--on-accent);
   font-family: var(--font);
   font-weight: 700;
   font-size: 13px;
