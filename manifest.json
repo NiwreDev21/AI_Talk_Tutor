@@ -1,6 +1,6 @@
 {
-  "name": "Echo — English Listening",
-  "short_name": "Echo",
+  "name": "AI Talk Tutor",
+  "short_name": "AI Talk",
   "description": "Learn English with shadowing, pronunciation, and listening practice",
   "start_url": "/index.html",
   "display": "standalone",
