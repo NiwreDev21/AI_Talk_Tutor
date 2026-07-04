@@ -1,0 +1,27 @@
+{
+  "name": "Echo — English Listening",
+  "short_name": "Echo",
+  "description": "Learn English with shadowing, pronunciation, and listening practice",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#131313",
+  "theme_color": "#131313",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/talk.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/talk2.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}

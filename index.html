@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>AI Talk Tutor</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#131313">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+</head>
+<body>
+
+<!-- BRAND MARK -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+    <linearGradient id="gradEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffcfc4"/>
+      <stop offset="100%" stop-color="#e2725b"/>
+    </linearGradient>
+    <linearGradient id="gradEmeraldSoft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c5cdc9"/>
+      <stop offset="100%" stop-color="#8f9c96"/>
+    </linearGradient>
+    <filter id="iconShadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+<!-- Logo: concentric echo rings -->
+  <symbol id="i-logo" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="3.2" fill="url(#gradEmerald)"/>
+    <path d="M7 12a5 5 0 0 1 5-5" stroke="url(#gradEmerald)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+    <path d="M4.2 12a7.8 7.8 0 0 1 7.8-7.8" stroke="url(#gradEmerald)" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.65"/>
+    <path d="M1.6 12A10.4 10.4 0 0 1 12 1.6" stroke="url(#gradEmerald)" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.4"/>
+  </symbol>
+</svg>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<div class="app-shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-icon"><svg class="icon icon-logo"><use href="#i-logo"/></svg></span>
+        <span class="logo-text">AI Talk</span>
+      </div>
+      <button class="sidebar-close" id="sidebar-close">×</button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="library">
+        <span class="nav-icon"><span class="msi">auto_stories</span></span>
+        <span class="nav-label">Decks</span>
+      </button>
+      <button class="nav-item" data-tab="pronun">
+        <span class="nav-icon"><span class="msi">graphic_eq</span></span>
+        <span class="nav-label">Pronunciation</span>
+      </button>
+      <button class="nav-item" data-tab="dictado">
+        <span class="nav-icon"><span class="msi">keyboard_voice</span></span>
+        <span class="nav-label">Dictation</span>
+      </button>
+      <button class="nav-item" data-tab="estructuras">
+        <span class="nav-icon"><span class="msi">grid_view</span></span>
+        <span class="nav-label">Structures</span>
+      </button>
+      <button class="nav-item" data-tab="repaso">
+        <span class="nav-icon"><span class="msi">autorenew</span></span>
+        <span class="nav-label">Review</span>
+      </button>
+    </nav>
+  </aside>
+
+  <!-- OVERLAY -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <header class="top-bar">
+      <button class="hamburger" id="hamburger"><span class="msi">menu</span></button>
+      <div class="topbar-logo" id="topbar-logo">
+        <span class="logo-icon"><svg class="icon icon-logo"><use href="#i-logo"/></svg></span>
+        <span class="logo-text">Echo</span>
+      </div>
+      <h1 class="page-title" id="page-title">Decks</h1>
+      <div class="top-bar-actions" id="top-bar-actions">
+        <button class="ai-tutor-btn" id="ai-tutor-btn" title="AI Tutor — talk live in English">
+          <span class="ai-tutor-btn-glow"></span>
+          <span class="ai-tutor-btn-ring"></span>
+          <span class="msi">auto_awesome</span>
+          <span class="ai-tutor-btn-label">AI Tutor</span>
+        </button>
+        <button class="topbar-icon-btn" id="topbar-settings-btn" data-tab="settings" title="Settings">
+          <span class="msi">settings</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ============ LIBRARY ============ -->
+    <section class="section active" id="tab-library">
+      <!-- Deck View -->
+      <div id="library-deck-view">
+        <div class="home-greeting">
+          <h1 class="home-greeting-title">Hello, <span id="home-username">Your name</span></h1>
+        </div>
+
+        <div class="progress-hero" id="progress-hero">
+          <div class="progress-hero-main">
+            <div class="progress-hero-info">
+              <div class="progress-hero-eyebrow">Your progress</div>
+              <div class="progress-hero-title">Practice streak</div>
+              <p class="progress-hero-subtitle" id="progress-hero-subtitle">Practice today to start your streak.</p>
+            </div>
+            <div class="progress-hero-flame" id="progress-hero-flame">
+              <span class="msi">headphones</span>
+            </div>
+          </div>
+          <div class="progress-hero-bottom">
+            <div class="progress-hero-streak">
+              <span class="progress-hero-streak-num" id="progress-hero-streak">0</span>
+              <span class="progress-hero-streak-label" id="progress-hero-streak-label">day streak</span>
+            </div>
+            <div class="progress-hero-week" id="progress-hero-week"></div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">My Decks</h2>
+            <p class="section-subtitle">Continue your daily learning</p>
+          </div>
+          <button class="btn btn-accent btn-sm" id="lib-add-btn">+ New card</button>
+        </div>
+        <div class="mazo-deck-grid" id="deck-grid"></div>
+      </div>
+
+      <!-- Card View (inside a deck) -->
+      <div id="library-card-view" class="hidden">
+        <div class="section-header">
+          <button class="btn btn-ghost btn-sm" id="lib-back-btn">← Back</button>
+          <h2 class="section-title" id="deck-view-title">Monday</h2>
+          <button class="btn btn-accent btn-sm" id="lib-add-here-btn">+ Add</button>
+        </div>
+        <div class="search-bar">
+          <input type="text" id="lib-search" placeholder="Search phrases..." class="input-field">
+          <label class="filter-toggle">
+            <input type="checkbox" id="lib-filter-audio">
+            <span><span class="msi">volume_up</span> With audio</span>
+          </label>
+        </div>
+        <div class="phrase-grid" id="phrase-grid"></div>
+      </div>
+
+      <!-- Add/Edit Form Modal -->
+      <div class="modal-overlay hidden" id="phrase-modal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 id="phrase-modal-title">New Card</h3>
+            <button class="modal-close" id="phrase-modal-close">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Title / Topic</label>
+              <input type="text" id="pf-title" class="input-field" placeholder='E.g.: "I think..."'>
+            </div>
+            <div class="form-group">
+              <label class="form-label">English phrase</label>
+              <textarea id="pf-text" class="input-field textarea" placeholder="I think the best way to learn English is to practice every day."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Translation</label>
+              <textarea id="pf-trans" class="input-field textarea" placeholder="I think the best way to learn English is to practice every day."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Day</label>
+              <select id="pf-day" class="input-field select">
+                <option value="lunes">Monday</option>
+                <option value="martes">Tuesday</option>
+                <option value="miercoles">Wednesday</option>
+                <option value="jueves">Thursday</option>
+                <option value="viernes">Friday</option>
+                <option value="sabado">Saturday</option>
+                <option value="domingo">Sunday</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Original audio</label>
+              <div class="audio-upload-row">
+                <label class="btn btn-ghost btn-sm" for="pf-audio-file"><span class="msi">folder_open</span> File</label>
+                <input type="file" id="pf-audio-file" accept="audio/*" class="hidden">
+                <button class="btn btn-ghost btn-sm" id="pf-record-btn"><span class="msi">mic</span> Record</button>
+              </div>
+              <div id="pf-audio-preview" class="mt-sm"></div>
+            </div>
+            <input type="hidden" id="pf-edit-id">
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" id="pf-cancel-btn">Cancel</button>
+            <button class="btn btn-accent" id="pf-save-btn">Save card</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ REPASO ============ -->
+    <section class="section" id="tab-repaso">
+      <div class="repaso-layout">
+        <div class="repaso-select-area" id="repaso-select-area">
+          <label class="form-label">Select a card</label>
+          <select id="repaso-phrase-select" class="input-field select"></select>
+          <button class="btn btn-accent" id="repaso-start-btn">Start review</button>
+
+          <div class="repaso-suggestions">
+            <div class="repaso-sugg-title"><span class="msi">lightbulb</span> What can you practice here?</div>
+            <p class="repaso-sugg-text">Review guides you through a card in 4 steps: listen, read, match sound with text, and repeat without visual support. If you'd prefer another way to practice:</p>
+            <div class="repaso-sugg-links">
+              <button class="btn btn-ghost btn-sm" data-tab="estructuras"><span class="msi">grid_view</span> Practice Structures</button>
+              <button class="btn btn-ghost btn-sm" data-tab="dictado"><span class="msi">keyboard_voice</span> Transcribe via Dictation</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="repaso-session" class="hidden">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar"><div class="progress-fill" id="repaso-progress"></div></div>
+            <div class="step-indicators" id="repaso-steps">
+              <span class="step-dot active"></span>
+              <span class="step-dot"></span>
+              <span class="step-dot"></span>
+              <span class="step-dot"></span>
+            </div>
+          </div>
+
+          <div class="step-label-area">
+            <div class="step-number" id="repaso-step-num">Step 1 / 4</div>
+            <div class="step-desc" id="repaso-step-desc">Listen without subtitles</div>
+          </div>
+
+          <div class="repaso-card">
+            <div class="repaso-phrase-title" id="repaso-phrase-title"></div>
+            <div class="repaso-phrase-text" id="repaso-phrase-text"></div>
+            <div class="repaso-phrase-trans" id="repaso-phrase-trans"></div>
+            <div id="repaso-audio-wrap" class="mt-md"></div>
+          </div>
+
+          <div class="repaso-controls">
+            <button class="btn btn-ghost" id="repaso-back-btn">← Previous step</button>
+            <button class="btn btn-accent" id="repaso-next-btn">Next step →</button>
+          </div>
+
+          <div class="repaso-hint" id="repaso-hint"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PRONUNCIATION ============ -->
+    <section class="section" id="tab-pronun">
+      <div class="pronun-layout">
+        <div class="pronun-select-area">
+          <label class="form-label">Select a card</label>
+          <select id="pronun-phrase-select" class="input-field select"></select>
+        </div>
+
+        <div class="recog-stage" id="recog-stage">
+          <div class="recog-original" id="recog-original">
+            <span class="recog-text blurred" id="recog-text-display">Select a card to begin</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" id="pronun-show-btn"><span class="msi">visibility</span> Show phrase</button>
+
+          <div class="pronun-audio-label" id="pronun-audio-label">
+            <span class="msi">record_voice_over</span> Reference audio (native)
+          </div>
+          <div id="pronun-audio-wrap" class="mt-md"></div>
+          <div class="pronun-audio-upload hidden" id="pronun-audio-upload">
+            <label class="btn btn-ghost btn-sm" for="pronun-audio-file"><span class="msi">upload_file</span> Upload reference audio</label>
+            <input type="file" id="pronun-audio-file" accept="audio/*" class="hidden">
+          </div>
+
+          <div class="pronun-controls">
+            <button class="btn btn-accent" id="pronun-start-btn"><span class="msi">mic</span> Pronounce</button>
+            <button class="btn btn-ghost hidden" id="pronun-stop-btn"><span class="msi">stop_circle</span> Stop and analyze</button>
+          </div>
+
+          <div class="listening-state hidden" id="listening-state">
+            <span class="rec-dot"></span> Listening...
+          </div>
+
+          <div class="pronun-live-wrap hidden" id="pronun-live-wrap">
+            <div class="pronun-live-label"><span class="msi">hearing</span> What I heard</div>
+            <div class="pronun-live-box" id="pronun-live-box">
+              <span id="pronun-live-text"></span><span class="interim" id="pronun-live-interim"></span>
+            </div>
+          </div>
+
+          <div class="pronun-analyzing hidden" id="pronun-analyzing">
+            <span class="msi spin">progress_activity</span> Analyzing your pronunciation...
+          </div>
+
+          <div class="pronun-results hidden" id="pronun-results">
+            <div class="score-section" id="score-section">
+              <div class="score-ring-wrap">
+                <svg class="score-ring" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="var(--surface2)" stroke-width="10"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="var(--accent)" stroke-width="10"
+                    stroke-dasharray="314" stroke-dashoffset="314" stroke-linecap="round"
+                    id="score-circle-arc" transform="rotate(-90 60 60)"/>
+                </svg>
+                <span class="score-num" id="score-num">0%</span>
+              </div>
+              <div class="score-label">How closely you matched it</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section" id="tab-estructuras">
+      <div class="section-header">
+        <h2 class="section-title">Grammar Patterns</h2>
+        <button class="btn btn-accent btn-sm" id="estr-add-btn">+ New pattern</button>
+      </div>
+
+      <div class="estr-search-bar">
+        <input type="text" id="estr-search" class="input-field" placeholder="Search pattern in cards...">
+        <button class="btn btn-accent btn-sm" id="estr-search-btn">Search</button>
+      </div>
+
+      <div id="estr-match-banner" class="estr-match-banner hidden"></div>
+
+      <div class="estr-grid" id="estr-grid"></div>
+
+      <!-- Add/Edit Structure Modal -->
+      <div class="modal-overlay hidden" id="estr-modal">
+        <div class="modal">
+          <div class="modal-header">
+            <h3 id="estr-modal-title">New Pattern</h3>
+            <button class="modal-close" id="estr-modal-close">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label class="form-label">Pattern / Structure</label>
+              <input type="text" id="ef-pattern" class="input-field" placeholder="I think...">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tags (comma separated)</label>
+              <input type="text" id="ef-tags" class="input-field" placeholder="opinion, spoken, formal">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Color</label>
+              <div class="color-picker" id="estr-color-picker">
+                <span class="color-dot active" data-color="#10b981" style="background:#10b981"></span>
+                <span class="color-dot" data-color="#6d9bc7" style="background:#6d9bc7"></span>
+                <span class="color-dot" data-color="#d5a16a" style="background:#d5a16a"></span>
+                <span class="color-dot" data-color="#ef6f6f" style="background:#ef6f6f"></span>
+                <span class="color-dot" data-color="#a47fc7" style="background:#a47fc7"></span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Audio</label>
+              <div class="audio-upload-row">
+                <label class="btn btn-ghost btn-sm" for="ef-audio-file"><span class="msi">folder_open</span> File</label>
+                <input type="file" id="ef-audio-file" accept="audio/*" class="hidden">
+                <button class="btn btn-ghost btn-sm" id="ef-record-btn"><span class="msi">mic</span> Record</button>
+              </div>
+              <div id="ef-audio-preview" class="mt-sm"></div>
+            </div>
+            <input type="hidden" id="ef-edit-id">
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost" id="ef-cancel-btn">Cancel</button>
+            <button class="btn btn-accent" id="ef-save-btn">Save pattern</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DICTADO ============ -->
+    <section class="section" id="tab-dictado">
+      <div class="dictado-layout">
+        <div class="dictado-main">
+          <div class="mic-area">
+            <button class="mic-btn" id="mic-btn"><span class="msi msi-mic-lg">mic</span></button>
+            <div class="wave-bars" id="wave-bars">
+              <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+              <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+              <div class="bar"></div><div class="bar"></div>
+            </div>
+            <div class="mic-status" id="mic-status">Tap to speak</div>
+          </div>
+
+          <div class="transcript-box" id="transcript-box">
+            <span id="transcript-final"></span><span class="interim" id="transcript-interim"></span>
+          </div>
+
+          <div class="dictado-actions">
+            <button class="btn btn-ghost btn-sm" id="btn-delete-last"><span class="msi">backspace</span> Delete last</button>
+            <button class="btn btn-ghost btn-sm" id="btn-clear"><span class="msi">delete_sweep</span> Clear all</button>
+            <button class="btn btn-accent btn-sm" id="btn-save-dictado"><span class="msi">save</span> Save as card</button>
+          </div>
+
+          <div class="dynamic-prompt">
+            <div class="prompt-label"><span class="msi">casino</span> SPEAKING SPARK</div>
+            <div class="prompt-phrase" id="prompt-phrase">Click to get a phrase...</div>
+            <button class="btn btn-ghost btn-sm" id="prompt-refresh">↻ Another phrase</button>
+          </div>
+        </div>
+
+        <div class="dictado-sidebar">
+          <div class="sugg-wrap">
+            <div class="sugg-label"><span class="msi">lightbulb</span> Suggestions</div>
+            <div class="sugg-chips" id="sugg-chips"></div>
+          </div>
+          <div class="dictado-kb-hints">
+            <div class="kb-hint-title">Keyboard shortcuts</div>
+            <div class="kb-hint"><kbd>Space</kbd> Start / Stop</div>
+            <div class="kb-hint"><kbd>Backspace</kbd> Delete last word</div>
+            <div class="kb-hint"><kbd>Ctrl+L</kbd> Clear all</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SETTINGS ============ -->
+    <section class="section" id="tab-settings">
+      <div class="settings-layout">
+        <div class="settings-group">
+          <h3 class="settings-group-title"><span class="msi">person</span> Profile</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Your name</div>
+              <div class="setting-desc">Shown in the greeting on the home screen</div>
+            </div>
+            <input type="text" id="cfg-username" class="input-field" placeholder="Your name" style="max-width:180px">
+          </div>
+        </div>
+
+        <div class="settings-group" id="install-settings-group">
+          <h3 class="settings-group-title"><span class="msi">install_mobile</span> App</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Install Echo</div>
+              <div class="setting-desc" id="install-desc">Install the app on your device to use it like a native app</div>
+            </div>
+            <button class="btn btn-accent btn-sm hidden" id="install-btn"><span class="msi">download</span> Install</button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3 class="settings-group-title"><span class="msi">auto_awesome</span> AI Tutor</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">AI provider</div>
+              <div class="setting-desc">Choose which AI powers your live voice conversations.</div>
+            </div>
+          </div>
+          <div class="ai-provider-options">
+            <label class="ai-provider-option">
+              <input type="radio" name="ai-provider" value="own" id="cfg-provider-own">
+              <span>My Gemini API <span class="ai-tutor-provider-badge">Recommended</span></span>
+            </label>
+            <label class="ai-provider-option">
+              <input type="radio" name="ai-provider" value="developer" id="cfg-provider-dev">
+              <span>Talk To Me AI Free</span>
+            </label>
+          </div>
+          <div class="ai-key-row" id="cfg-gemini-key-row">
+            <input type="password" id="cfg-gemini-key" class="input-field" placeholder="Paste your Gemini API key">
+            <button class="btn btn-ghost btn-sm" id="cfg-gemini-key-toggle" type="button" title="Show/hide key"><span class="msi">visibility</span></button>
+          </div>
+          <div class="setting-desc" style="margin-top:8px">Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>.</div>
+        </div>
+
+        <div class="settings-group">
+          <h3 class="settings-group-title"><span class="msi">notifications</span> Notifications</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-name">Daily reminder</div>
+              <div class="setting-desc">Get a notification to practice</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="notif-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="setting-row" id="notif-time-row">
+            <div class="setting-info">
+              <div class="setting-name">Reminder time</div>
+            </div>
+            <input type="time" id="notif-time" class="input-field time-input" value="09:00">
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3 class="settings-group-title"><span class="msi">database</span> Storage</h3>
+          <div class="storage-info" id="storage-info">
+            <div class="storage-bar-wrap">
+              <div class="storage-bar"><div class="storage-fill" id="storage-fill"></div></div>
+              <div class="storage-label" id="storage-label">Calculating...</div>
+            </div>
+          </div>
+          <button class="btn btn-danger" id="clear-data-btn"><span class="msi">delete_forever</span> Delete all data</button>
+        </div>
+
+        <div class="settings-group about-group">
+          <div class="about-header">
+            <div class="about-app-icon">
+              <svg class="icon icon-logo-lg"><use href="#i-logo"/></svg>
+            </div>
+            <div class="about-app-name">AI Talk Tutor</div>
+            <div class="about-app-tagline">English Listening &amp; Speaking</div>
+            <div class="about-version-chip">Version 1.0.0</div>
+          </div>
+          <p class="about-description">Learn English with pronunciation, dictation, and active listening — daily practice focused on speaking and understanding with confidence.</p>
+          <div class="about-divider"></div>
+          <div class="about-dev-row">
+            <span class="msi about-dev-icon">code</span>
+            <div>
+              <div class="about-dev-label">Developed by</div>
+              <div class="about-dev-name">Eng. Erwin Patiño Flores</div>
+            </div>
+          </div>
+          
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-nav">
+  <button class="mobile-nav-item active" data-tab="library">
+    <span><span class="msi">auto_stories</span></span><span>Decks</span>
+  </button>
+  <button class="mobile-nav-item" data-tab="pronun">
+    <span><span class="msi">graphic_eq</span></span><span>Pronun.</span>
+  </button>
+  <button class="mobile-nav-item mobile-nav-fab" data-tab="dictado">
+    <span class="fab-circle"><span class="msi">keyboard_voice</span></span><span>Dictation</span>
+  </button>
+  <button class="mobile-nav-item" data-tab="estructuras">
+    <span><span class="msi">grid_view</span></span><span>Struct.</span>
+  </button>
+  <button class="mobile-nav-item" data-tab="repaso">
+    <span><span class="msi">autorenew</span></span><span>Review</span>
+  </button>
+</nav>
+
+<!-- ============ AI TUTOR (Gemini Live) ============ -->
+<div class="ai-tutor-overlay hidden" id="ai-tutor-overlay"></div>
+<div class="ai-tutor-panel hidden" id="ai-tutor-panel" role="dialog" aria-label="AI Tutor">
+  <div class="ai-tutor-header">
+    <div class="ai-tutor-header-info">
+      <span class="ai-tutor-avatar"><span class="msi">auto_awesome</span></span>
+      <div>
+        <div class="ai-tutor-title">AI Tutor</div>
+        <div class="ai-tutor-status" id="ai-tutor-status">
+          <span class="ai-tutor-status-dot" id="ai-tutor-status-dot"></span>
+          <span id="ai-tutor-status-text">Tap the mic to start talking</span>
+        </div>
+      </div>
+    </div>
+    <button class="ai-tutor-close" id="ai-tutor-close" aria-label="Close"><span class="msi">close</span></button>
+  </div>
+
+  <div class="ai-tutor-body" id="ai-tutor-body">
+    <div class="ai-tutor-empty" id="ai-tutor-empty">
+      <span class="msi ai-tutor-empty-icon">forum</span>
+      <p>Start a live conversation in English. Your AI Tutor listens and replies out loud in real time — no typing needed.</p>
+    </div>
+    <div class="ai-tutor-messages" id="ai-tutor-messages"></div>
+  </div>
+
+  <div class="ai-tutor-provider-select hidden" id="ai-tutor-provider-select">
+    <p class="ai-tutor-provider-intro">Choose how your AI Tutor connects:</p>
+    <button class="ai-tutor-provider-card" id="ai-tutor-provider-own" type="button">
+      <span class="ai-tutor-provider-icon"><span class="msi">vpn_key</span></span>
+      <span class="ai-tutor-provider-info">
+        <span class="ai-tutor-provider-name">My Gemini API <span class="ai-tutor-provider-badge">Recommended</span></span>
+        <span class="ai-tutor-provider-desc">Use your own free Google API key. Not limited by the developer's quota.</span>
+      </span>
+      <span class="msi ai-tutor-provider-arrow">chevron_right</span>
+    </button>
+    <button class="ai-tutor-provider-card" id="ai-tutor-provider-dev" type="button">
+      <span class="ai-tutor-provider-icon"><span class="msi">bolt</span></span>
+      <span class="ai-tutor-provider-info">
+        <span class="ai-tutor-provider-name">Talk To Me AI Free</span>
+        <span class="ai-tutor-provider-desc">Use the developer's built-in AI. No API key needed.</span>
+      </span>
+      <span class="msi ai-tutor-provider-arrow">chevron_right</span>
+    </button>
+  </div>
+
+  <div class="ai-tutor-keysetup hidden" id="ai-tutor-keysetup">
+    <span class="msi ai-tutor-key-icon">key</span>
+    <p>Add your free Gemini API key to start talking with your AI Tutor.</p>
+    <input type="password" id="ai-tutor-key-input" class="input-field" placeholder="Paste your Gemini API key">
+    <button class="btn btn-accent btn-sm" id="ai-tutor-key-save">Save &amp; Connect</button>
+    <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="ai-tutor-key-link">Get a free key at Google AI Studio →</a>
+  </div>
+
+  <div class="ai-tutor-footer" id="ai-tutor-footer">
+    <div class="wave-bars ai-tutor-wave" id="ai-tutor-wave">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div>
+    </div>
+    <button class="ai-tutor-mic-btn" id="ai-tutor-mic-btn" title="Start talking">
+      <span class="msi">mic</span>
+    </button>
+    <button class="btn btn-ghost btn-sm hidden" id="ai-tutor-end-btn">End session</button>
+  </div>
+</div>
+
+<script src="gemini-live.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
