@@ -5,18 +5,24 @@
    Purpose: mint a short-lived Gemini Live ephemeral token so the
    developer's real Gemini API key NEVER reaches the browser.
 
+   Uses the official @google/genai SDK (client.authTokens.create()),
+   which is the path Google documents and maintains — it's the most
+   likely to keep working as the Live API evolves, and it handles the
+   HTTP response parsing internally instead of us doing it by hand.
+
    Flow:
      Frontend (Talk To Me AI Free)
         -> POST /api/gemini-token   (this function)
-        -> Google AuthTokenService.CreateToken  (uses GEMINI_API_KEY, server-side only)
+        -> @google/genai -> AuthTokenService.CreateToken (GEMINI_API_KEY, server-side only)
         -> returns { token } to the frontend
         -> frontend opens a WebSocket straight to Gemini Live using
            that ephemeral token (not the real key).
 
    Setup on Vercel:
-     1. In your Vercel project → Settings → Environment Variables,
+     1. Add "@google/genai" as a dependency (see package.json).
+     2. In your Vercel project → Settings → Environment Variables,
         add GEMINI_API_KEY = <your real Gemini API key>.
-     2. Deploy. Vercel auto-detects any file under /api as a
+     3. Deploy. Vercel auto-detects any file under /api as a
         serverless function — no extra config needed.
 
    No auth, no rate limiting, no quotas here by design (per request).
@@ -24,10 +30,14 @@
    token — add limits later if you need to control cost.
    ============================================= */
 
+import { GoogleGenAI } from '@google/genai';
+
+// Restricted to the production domain — change this if you deploy
+// the frontend somewhere else (e.g. a custom domain).
+const ALLOWED_ORIGIN = 'https://ai-talk-tutor.vercel.app';
+
 export default async function handler(req, res) {
-  // Basic CORS so this also works if the frontend is ever hosted
-  // on a different origin than the Vercel deployment.
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -49,6 +59,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    const client = new GoogleGenAI({ apiKey });
+
     const now = Date.now();
     // The token itself is valid for 30 minutes...
     const expireTime = new Date(now + 30 * 60 * 1000).toISOString();
@@ -57,35 +69,24 @@ export default async function handler(req, res) {
     // since we mint it right before connecting.
     const newSessionExpireTime = new Date(now + 60 * 1000).toISOString();
 
-    const googleResp = await fetch(
-      `https://generativelanguage.googleapis.com/v1alpha/authTokens?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          authToken: {
-            uses: 1,
-            expireTime,
-            newSessionExpireTime,
-          },
-        }),
-      }
-    );
+    const token = await client.authTokens.create({
+      config: {
+        uses: 1,
+        expireTime,
+        newSessionExpireTime,
+        httpOptions: { apiVersion: 'v1alpha' },
+      },
+    });
 
-    const data = await googleResp.json();
-
-    if (!googleResp.ok) {
-      console.error('Google AuthTokenService error:', data);
-      res.status(googleResp.status).json({
-        error: (data && data.error && data.error.message) || 'Could not create an AI Tutor session token.',
-      });
-      return;
+    if (!token || !token.name) {
+      throw new Error('Google returned an empty token.');
     }
 
-    // `data.name` is the ephemeral token, e.g. "auth_tokens/AbCdEf..."
-    res.status(200).json({ token: data.name });
+    // token.name looks like "auth_tokens/AbCdEf..."
+    res.status(200).json({ token: token.name });
   } catch (err) {
     console.error('gemini-token function error:', err);
-    res.status(500).json({ error: 'Unexpected server error while creating the AI Tutor session.' });
+    const message = (err && err.message) || 'Unexpected server error while creating the AI Tutor session.';
+    res.status(500).json({ error: message });
   }
 }

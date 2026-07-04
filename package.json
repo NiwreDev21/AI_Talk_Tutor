@@ -1,0 +1,9 @@
+{
+  "name": "echo-english-app",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Echo — English Listening & Speaking practice PWA, with an AI Tutor powered by the Gemini Live API.",
+  "dependencies": {
+    "@google/genai": "^1.30.0"
+  }
+}
