@@ -4,6 +4,6 @@
   "private": true,
   "description": "Echo — English Listening & Speaking practice PWA, with an AI Tutor powered by the Gemini Live API.",
   "dependencies": {
-    "@google/genai": "^1.30.0"
+    "@google/genai": "^1.52.0"
   }
 }
